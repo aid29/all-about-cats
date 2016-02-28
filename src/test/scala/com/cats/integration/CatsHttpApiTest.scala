@@ -1,7 +1,7 @@
 package com.cats.integration
 
 import cats.data.Xor
-import com.cats.{ApiError, CatImage, CatsHttpApi}
+import com.cats.{CatCategory, ApiError, CatImage, CatsHttpApi}
 import com.cats.fake.FakeCatApi
 import dispatch.{url, Http}
 import org.scalatest.FunSpec
@@ -16,9 +16,9 @@ class CatsHttpApiTest extends FunSpec{
   val fakeServer = new FakeCatApi(8099)
   val catsHttpApi = new CatsHttpApi(httpClient, url("http://localhost:8099"))
 
-  describe("cats http api") {
-    it("return a random cat image") {
-      val xmlRes = <response>
+  describe("get cat image endpoint") {
+    it("can return a random cat image url") {
+      val catImageXml = <response>
         <data>
           <images>
             <image>
@@ -29,15 +29,47 @@ class CatsHttpApiTest extends FunSpec{
           </images>
         </data>
       </response>
-      fakeServer.withCatImageXml(xmlRes) {
+      fakeServer.withCatImageXml(catImageXml) {
         val returnCatImage = Await.result(catsHttpApi.catImage, 5 seconds)
-        returnCatImage should be(Xor.Right(CatImage("http://24.media.tumblr.com/tumblr_m4j2e7Fd7M1qejbiro1_1280.jpg","dqd")))
+        returnCatImage should be(Xor.Right(CatImage("http://24.media.tumblr.com/tumblr_m4j2e7Fd7M1qejbiro1_1280.jpg", "dqd")))
       }
     }
 
-    it("return ApiError if received http error") {
-      fakeServer.failedOn(500) {
+    it("return ApiError with http statuts code if received http error") {
+      fakeServer.failedOnCatCategories(500) {
         Await.result(catsHttpApi.catImage, 5 seconds) should be(Xor.left(ApiError(500)))
+      }
+    }
+  }
+
+  describe("get cat categories list endpoint") {
+    it("return cat's categories list ordering by the name") {
+      val catCategoriesXml = <response>
+        <data>
+          <categories>
+            <category>
+              <id>1</id>
+              <name>hats</name>
+            </category>
+            <category>
+              <id>2</id>
+              <name>space</name>
+            </category>
+          </categories>
+        </data>
+      </response>
+      fakeServer.withCatCategoriesXml(catCategoriesXml) {
+        val categories = Await.result(catsHttpApi.catCategories, 5 seconds).toOption.get
+        categories.length should be(2)
+        categories should contain(CatCategory(1,"hats"))
+        categories should contain(CatCategory(2,"space"))
+      }
+
+    }
+
+    it("return ApiError with http status code if received http error") {
+      fakeServer.failedOnCatCategories(500) {
+        Await.result(catsHttpApi.catCategories, 5 seconds) should be(Xor.left(ApiError(500)))
       }
     }
   }

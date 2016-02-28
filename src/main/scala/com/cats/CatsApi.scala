@@ -15,8 +15,19 @@ class CatsHttpApi(httpClient:Http, baseUri:Req)(implicit executor: ExecutionCont
       })
     })
   }
+
+  override def catCategories:Future[Xor[CatsApiError,List[CatCategory]]] = {
+    val req: Req = (baseUri / "categories" / "list")
+    httpClient(req OK as.xml.Elem).either.map(either=>{
+      Xor.fromEither(either).map(CatCategory.fromXml(_)).leftMap({
+        case StatusCode(code) => ApiError(code)
+        case t: Throwable => Error(t)
+      })
+    })
+  }
 }
 
 trait CatsApi {
   def catImage:Future[Xor[CatsApiError, CatImage]]
+  def catCategories:Future[Xor[CatsApiError,List[CatCategory]]]
 }

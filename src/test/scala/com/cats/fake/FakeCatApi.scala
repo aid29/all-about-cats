@@ -9,10 +9,7 @@ import scala.xml.Elem
 class FakeCatApi(port:Int) {
 
   private val getImageEndpoint = get("images" / "get")
-
-  private def imageEndpointReturn(catImgXmlRes:Elem): Endpoint[String] = getImageEndpoint {
-      Ok(catImgXmlRes.toString())
-    }
+  private val categoriesEndpoint = get("categories" / "list")
 
   private def failedImageEndpointWith(statusCode:Int): Endpoint[String] = getImageEndpoint {
     if(statusCode == 200) {
@@ -22,14 +19,34 @@ class FakeCatApi(port:Int) {
     }
   }
 
+  private def failedCategoriesEndpointWith(statusCode:Int): Endpoint[String] = categoriesEndpoint {
+    if(statusCode == 200) {
+      Ok("ok")
+    } else {
+      Output.failure(new Exception("fake failed"), Status(statusCode))
+    }
+  }
+
   def withCatImageXml(res:Elem)(block: => Unit) {
-    val server = Http.serve(s":$port", imageEndpointReturn(res).toService)
+    val server = Http.serve(s":$port", (getImageEndpoint{Ok(res.toString())}).toService)
     block
     server.close()
   }
 
-  def failedOn(statusCode:Int)(block: => Unit): Unit = {
+  def withCatCategoriesXml(res:Elem)(block: => Unit) {
+    val server = Http.serve(s":$port", (categoriesEndpoint{Ok(res.toString())}).toService)
+    block
+    server.close()
+  }
+
+  def failedOnCatImage(statusCode:Int)(block: => Unit): Unit = {
     val server = Http.serve(s":$port", failedImageEndpointWith(statusCode).toService)
+    block
+    server.close()
+  }
+
+  def failedOnCatCategories(statusCode:Int)(block: => Unit): Unit = {
+    val server = Http.serve(s":$port", failedCategoriesEndpointWith(statusCode).toService)
     block
     server.close()
   }
