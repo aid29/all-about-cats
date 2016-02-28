@@ -9,11 +9,14 @@ class CatsHttpApi(httpClient:Http, baseUri:Req)(implicit executor: ExecutionCont
   override def catImage = {
     val req: Req = (baseUri / "images" / "get").addQueryParameter("format","xml")
     httpClient(req OK as.xml.Elem).either.map(either=>{
-      Xor.fromEither(either).map(CatImage(_))
+      Xor.fromEither(either).map(CatImage(_)).leftMap({
+        case StatusCode(code) => ApiError(code)
+        case t: Throwable => Error(t)
+      })
     })
   }
 }
 
 trait CatsApi {
-  def catImage:Future[Xor[Throwable, CatImage]]
+  def catImage:Future[Xor[CatsApiError, CatImage]]
 }

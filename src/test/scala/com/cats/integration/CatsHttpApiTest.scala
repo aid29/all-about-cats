@@ -1,7 +1,7 @@
 package com.cats.integration
 
 import cats.data.Xor
-import com.cats.{CatImage, CatsHttpApi}
+import com.cats.{ApiError, CatImage, CatsHttpApi}
 import com.cats.fake.FakeCatApi
 import dispatch.{url, Http}
 import org.scalatest.FunSpec
@@ -17,7 +17,7 @@ class CatsHttpApiTest extends FunSpec{
   val catsHttpApi = new CatsHttpApi(httpClient, url("http://localhost:8099"))
 
   describe("cats http api") {
-    it("can return a random cat image") {
+    it("return a random cat image") {
       val xmlRes = <response>
         <data>
           <images>
@@ -32,6 +32,12 @@ class CatsHttpApiTest extends FunSpec{
       fakeServer.withCatImageXml(xmlRes) {
         val returnCatImage = Await.result(catsHttpApi.catImage, 5 seconds)
         returnCatImage should be(Xor.Right(CatImage("http://24.media.tumblr.com/tumblr_m4j2e7Fd7M1qejbiro1_1280.jpg","dqd")))
+      }
+    }
+
+    it("return ApiError if received http error") {
+      fakeServer.failedOn(500) {
+        Await.result(catsHttpApi.catImage, 5 seconds) should be(Xor.left(ApiError(500)))
       }
     }
   }
