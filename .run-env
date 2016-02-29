@@ -1,0 +1,5 @@
+set -a
+
+HTTP_TIMEOUT=50000
+CAT_API_URL=http://thecatapi.com/api/
+CAT_FACT_API_URL=http://catfacts-api.appspot.com/api/
