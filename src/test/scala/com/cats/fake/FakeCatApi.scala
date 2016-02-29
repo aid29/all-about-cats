@@ -10,6 +10,7 @@ class FakeCatApi(port:Int) {
 
   private val getImageEndpoint = get("images" / "get")
   private val categoriesEndpoint = get("categories" / "list")
+  private val factsEndpoint = get("facts")
 
   private def failedImageEndpointWith(statusCode:Int): Endpoint[String] = getImageEndpoint {
     if(statusCode == 200) {
@@ -20,6 +21,14 @@ class FakeCatApi(port:Int) {
   }
 
   private def failedCategoriesEndpointWith(statusCode:Int): Endpoint[String] = categoriesEndpoint {
+    if(statusCode == 200) {
+      Ok("ok")
+    } else {
+      Output.failure(new Exception("fake failed"), Status(statusCode))
+    }
+  }
+
+  private def failedFactEndpointWith(statusCode:Int): Endpoint[String] = factsEndpoint {
     if(statusCode == 200) {
       Ok("ok")
     } else {
@@ -39,6 +48,12 @@ class FakeCatApi(port:Int) {
     server.close()
   }
 
+  def withCatFactJson(json:String)(block: => Unit) {
+    val server = Http.serve(s":$port", (factsEndpoint{Ok(json)}).toService)
+    block
+    server.close()
+  }
+
   def failedOnCatImage(statusCode:Int)(block: => Unit): Unit = {
     val server = Http.serve(s":$port", failedImageEndpointWith(statusCode).toService)
     block
@@ -47,6 +62,12 @@ class FakeCatApi(port:Int) {
 
   def failedOnCatCategories(statusCode:Int)(block: => Unit): Unit = {
     val server = Http.serve(s":$port", failedCategoriesEndpointWith(statusCode).toService)
+    block
+    server.close()
+  }
+
+  def failedOnCatFact(statusCode:Int)(block: => Unit): Unit = {
+    val server = Http.serve(s":$port", failedFactEndpointWith(statusCode).toService)
     block
     server.close()
   }

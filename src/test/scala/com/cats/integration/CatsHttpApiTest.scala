@@ -14,7 +14,7 @@ class CatsHttpApiTest extends FunSpec{
 
   val httpClient = Http()
   val fakeServer = new FakeCatApi(8099)
-  val catsHttpApi = new CatsHttpApi(httpClient, url("http://localhost:8099"))
+  val catsHttpApi = new CatsHttpApi(httpClient, url("http://localhost:8099"), url("http://localhost:8099"))
 
   describe("get cat image endpoint") {
     it("can return a random cat image url") {
@@ -70,6 +70,30 @@ class CatsHttpApiTest extends FunSpec{
     it("return ApiError with http status code if received http error") {
       fakeServer.failedOnCatCategories(500) {
         Await.result(catsHttpApi.catCategories, 5 seconds) should be(Xor.left(ApiError(500)))
+      }
+    }
+  }
+
+  describe("get cat fact endpoint") {
+    it("return a cat fact") {
+      val catFactJson =
+        """
+          |{
+          |    "facts": [
+          |        "A cat cannot see directly under its nose."
+          |    ],
+          |    "success": "true"
+          |}
+        """.stripMargin
+
+      fakeServer.withCatFactJson(catFactJson) {
+        val catFact = Await.result(catsHttpApi.catFact, 5 seconds).toOption.get should be("A cat cannot see directly under its nose.")
+      }
+    }
+
+    it("return ApiError with http status code if received http error") {
+      fakeServer.failedOnCatFact(500) {
+        Await.result(catsHttpApi.catFact, 5 seconds) should be(Xor.left(ApiError(500)))
       }
     }
   }
