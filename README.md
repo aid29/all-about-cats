@@ -16,7 +16,16 @@ You can fetch some cat's images, cat's categories and cat's facts from Internet 
     $ ./sbt "testOnly *CatHttpApiCdcTest"
 
 ## Run
-    $ ./run
+
+- Download a random cat image
+    $ ./run file
+
+- Display the list of cat's categories
+    $ ./run categories
+
+- Display a cat's fact
+   $ ./run fact
+
 
 ## Todos
 
