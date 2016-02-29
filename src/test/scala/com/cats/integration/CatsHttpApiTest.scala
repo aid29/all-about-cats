@@ -6,9 +6,9 @@ import com.cats.fake.FakeCatApi
 import dispatch.{url, Http}
 import org.scalatest.FunSpec
 import org.scalatest.Matchers._
-import scala.concurrent.Await
+import scala.concurrent.{ExecutionContext, Await}
 import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext.Implicits.global
+import ExecutionContext.Implicits.global
 
 class CatsHttpApiTest extends FunSpec{
 
