@@ -21,15 +21,4 @@ class CommandExecutor[T](future:Future[T]) {
   def runAndWait: T = {
     Await.result(future, 5 second)
   }
-
-  def run(process: T => Unit): Unit = {
-    future onSuccess {
-      case value:T => process(value)
-
-    }
-
-    future onFailure {
-      case t => println("Execution of command failed " + t.getMessage)
-    }
-  }
 }
