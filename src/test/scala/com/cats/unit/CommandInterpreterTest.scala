@@ -11,31 +11,43 @@ import ExecutionContext.Implicits.global
 
 class CommandInterpreterTest extends FunSpec {
   describe("command interpreter") {
-    it("call api to get a random cat image when receive 'file' command") {
+    it("call api to get a random cat image and call repository to save the image to the file when receive 'file' command") {
       val catApi = mock[CatsApi]
-      val res:Xor[CatsApiError, CatImage] = Xor.right(CatImage("url1","cat"))
-      when(catApi.catImage).thenReturn(Future{res})
-      val commandInterpreter = new CommandInterpreter(catApi)
+      val catRepo = mock[CatImageRepository]
+
+      val apiRes:Xor[CatsError, CatImage] = Xor.right(CatImage("url1","cat", None))
+      val repoRes:Xor[CatsError, CatImage] = Xor.right(CatImage("url1","cat", Some("xxx")))
+
+      when(catApi.catImage).thenReturn(Future{apiRes})
+      when(catRepo.saveImage(Xor.right(CatImage("url1","cat", None)))).thenReturn(Future{repoRes})
+
+      val commandInterpreter = new CommandInterpreter(catApi, catRepo)
       val executor = commandInterpreter.runCommand(Array("file"))
-      executor.run({value=> value should be(res)})
+      executor.runAndWait should be(repoRes)
     }
 
     it("call api to get a list of cat's categories when receive 'categories' command") {
       val catApi = mock[CatsApi]
-      val res:Xor[CatsApiError, List[CatCategory]] = Xor.right(List(CatCategory(1,"test")))
+      val catRepo = mock[CatImageRepository]
+      val res:Xor[CatsError, List[CatCategory]] = Xor.right(List(CatCategory(1,"test")))
+
       when(catApi.catCategories).thenReturn(Future{res})
-      val commandInterpreter = new CommandInterpreter(catApi)
+
+      val commandInterpreter = new CommandInterpreter(catApi, catRepo)
       val executor = commandInterpreter.runCommand(Array("categories"))
-      executor.run({value=> value should be(res)})
+      executor.runAndWait should be(res)
     }
 
     it("call api to get a cat's fact when receive 'fact' command") {
       val catApi = mock[CatsApi]
-      val res:Xor[CatsApiError, String] = Xor.right("cat fact")
+      val catRepo = mock[CatImageRepository]
+      val res:Xor[CatsError, String] = Xor.right("cat fact")
+
       when(catApi.catFact).thenReturn(Future{res})
-      val commandInterpreter = new CommandInterpreter(catApi)
+
+      val commandInterpreter = new CommandInterpreter(catApi, catRepo)
       val executor = commandInterpreter.runCommand(Array("fact"))
-      executor.run({value=> value should be(res)})
+      executor.runAndWait should be(res)
     }
   }
 }

@@ -2,7 +2,7 @@ package com.cats
 
 import scala.xml.Elem
 
-case class CatImage(url:String, id:String)
+case class CatImage(url:String, id:String, filePath:Option[String] = None)
 
 object CatImage {
   def apply(xml:Elem):CatImage = {

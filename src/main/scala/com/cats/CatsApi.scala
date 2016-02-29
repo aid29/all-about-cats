@@ -16,7 +16,7 @@ class CatsHttpApi(httpClient:Http, catApiBaseUri:Req, catFactApiBaseUri:Req)(imp
     })
   }
 
-  override def catCategories:Future[Xor[CatsApiError,List[CatCategory]]] = {
+  override def catCategories:Future[Xor[CatsError,List[CatCategory]]] = {
     val req: Req = (catApiBaseUri / "categories" / "list")
     httpClient(req OK as.xml.Elem).either.map(either=>{
       Xor.fromEither(either).map(CatCategory.fromXml(_)).leftMap({
@@ -26,7 +26,7 @@ class CatsHttpApi(httpClient:Http, catApiBaseUri:Req, catFactApiBaseUri:Req)(imp
     })
   }
 
-  override def catFact: dispatch.Future[Xor[CatsApiError, String]] = {
+  override def catFact: dispatch.Future[Xor[CatsError, String]] = {
     val req: Req = (catFactApiBaseUri / "facts")
     httpClient(req OK as.String).either.map(either => {
       Xor.fromEither(either).leftMap({
@@ -38,7 +38,7 @@ class CatsHttpApi(httpClient:Http, catApiBaseUri:Req, catFactApiBaseUri:Req)(imp
 }
 
 trait CatsApi {
-  def catImage:Future[Xor[CatsApiError, CatImage]]
-  def catCategories:Future[Xor[CatsApiError,List[CatCategory]]]
-  def catFact:Future[Xor[CatsApiError, String]]
+  def catImage:Future[Xor[CatsError, CatImage]]
+  def catCategories:Future[Xor[CatsError,List[CatCategory]]]
+  def catFact:Future[Xor[CatsError, String]]
 }
