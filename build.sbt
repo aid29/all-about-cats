@@ -11,6 +11,6 @@ libraryDependencies ++=
     "io.circe" %% "circe-generic" % "0.3.0" % "compile" withSources(),
     "io.circe" %% "circe-parser" % "0.3.0" % "compile" withSources(),
     "org.scalatest" %% "scalatest" % "2.2.4" % "test",
-    "com.github.finagle" %% "finch-core" % "0.10.0" % "test" withSources(),
+    "com.github.finagle" %% "finch-core" % "0.10.0" % "test" withSources() excludeAll ExclusionRule(name="netty"),
     "org.mockito" % "mockito-core" % "1.10.19"  % "test"
   )

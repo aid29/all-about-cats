@@ -1,16 +1,16 @@
 package com.cats.integration
 
 import cats.data.Xor
-import com.cats.{CatCategory, ApiError, CatImage, CatsHttpApi}
+import com.cats._
 import com.cats.fake.FakeCatApi
 import dispatch.{url, Http}
-import org.scalatest.FunSpec
+import org.scalatest.{BeforeAndAfterAll, FunSpec}
 import org.scalatest.Matchers._
 import scala.concurrent.{ExecutionContext, Await}
 import scala.concurrent.duration._
 import ExecutionContext.Implicits.global
 
-class CatsHttpApiTest extends FunSpec{
+class CatsHttpApiTest extends FunSpec with BeforeAndAfterAll{
 
   val httpClient = Http()
   val fakeServer = new FakeCatApi(8099)
@@ -36,7 +36,7 @@ class CatsHttpApiTest extends FunSpec{
     }
 
     it("return ApiError with http statuts code if received http error") {
-      fakeServer.failedOnCatCategories(500) {
+      fakeServer.failedOnCatImage(500) {
         Await.result(catsHttpApi.catImage, 5 seconds) should be(Xor.left(ApiError(500)))
       }
     }
@@ -97,4 +97,14 @@ class CatsHttpApiTest extends FunSpec{
       }
     }
   }
+
+
+
+//  it("test") {
+//    val repo = new ConcretCatImageRepository(httpClient, new UniqueFileNameGenerator)
+//    Await.result(repo.saveImage(Xor.right(CatImage("http://25.media.tumblr.com/tumblr_lkryzaiBXX1qbe5pxo1_1280.jpg","xxd"))), 5 seconds)
+//  }
+  override protected def beforeAll(): Unit = fakeServer.start()
+
+  override protected def afterAll(): Unit = fakeServer.stop()
 }
